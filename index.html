@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hostel Mess Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0e0e;
+      --surface: #161616;
+      --card: #1c1c1c;
+      --border: #2a2a2a;
+      --accent: #e8ff6b;
+      --text: #f0ede6;
+      --muted: #666;
+      --noon: #ffd166;
+      --night: #6b9eff;
+      --faizan: #ff9f6b;
+      --yaseen: #a78bfa;
+      --danger: #ff5f5f;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px 80px;
+      background-image:
+        radial-gradient(ellipse 60% 40% at 10% 10%, rgba(232,255,107,0.05) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 90% 90%, rgba(107,158,255,0.05) 0%, transparent 60%);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    header .tag {
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.25em;
+      color: var(--accent);
+      text-transform: uppercase;
+      background: rgba(232,255,107,0.08);
+      border: 1px solid rgba(232,255,107,0.2);
+      padding: 4px 14px;
+      border-radius: 100px;
+      display: inline-block;
+      margin-bottom: 14px;
+    }
+
+    header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 6vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    header h1 span { color: var(--accent); }
+
+    header p {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+    }
+
+    .persons-badge {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 14px;
+    }
+
+    .badge {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 100px;
+    }
+
+    .badge.faizan { background: rgba(255,159,107,0.15); color: var(--faizan); border: 1px solid rgba(255,159,107,0.3); }
+    .badge.yaseen { background: rgba(167,139,250,0.15); color: var(--yaseen); border: 1px solid rgba(167,139,250,0.3); }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 820px;
+      flex-wrap: wrap;
+    }
+
+    .controls label.date-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .controls input[type="date"] {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      padding: 8px 14px;
+      border-radius: 8px;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .controls input[type="date"]:focus { border-color: var(--accent); }
+
+    .add-btn {
+      background: var(--accent);
+      color: #0e0e0e;
+      border: none;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 9px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+
+    .add-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    .export-btn {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      margin-left: auto;
+    }
+
+    .export-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .import-label {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .import-label:hover { border-color: var(--night); color: var(--night); }
+    #importInput { display: none; }
+
+    /* Table */
+    .table-wrap {
+      width: 100%;
+      max-width: 820px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead tr {
+      background: var(--card);
+      border-bottom: 2px solid var(--border);
+    }
+
+    th {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 14px 12px;
+      text-align: center;
+    }
+
+    th.date-head { text-align: left; color: var(--muted); padding-left: 18px; }
+    th.person-head { color: var(--muted); }
+    th.noon-head { color: var(--noon); }
+    th.night-head { color: var(--night); }
+    th.action-head { color: var(--muted); }
+
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+    tr.group-sep td {
+      padding: 0;
+      height: 6px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+
+    td { padding: 12px 12px; font-size: 0.8rem; }
+
+    td.person-cell { text-align: center; vertical-align: middle; }
+
+    .person-tag {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 12px;
+      border-radius: 100px;
+    }
+
+    .person-tag.faizan { background: rgba(255,159,107,0.12); color: var(--faizan); }
+    .person-tag.yaseen { background: rgba(167,139,250,0.12); color: var(--yaseen); }
+
+    td.check-cell { text-align: center; vertical-align: middle; }
+
+    .check-wrap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .check-wrap input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      border: 2px solid var(--border);
+      background: var(--bg);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+
+    .check-wrap.noon input[type="checkbox"]:checked { background: var(--noon); border-color: var(--noon); }
+    .check-wrap.night input[type="checkbox"]:checked { background: var(--night); border-color: var(--night); }
+
+    .check-wrap input[type="checkbox"]::after {
+      content: '';
+      position: absolute;
+      left: 7px; top: 3px;
+      width: 7px; height: 12px;
+      border: 2.5px solid #0e0e0e;
+      border-top: none; border-left: none;
+      transform: rotate(45deg) scale(0);
+      transition: transform 0.15s cubic-bezier(.34,1.56,.64,1);
+    }
+
+    .check-wrap input[type="checkbox"]:checked::after { transform: rotate(45deg) scale(1); }
+
+    td.date-span {
+      vertical-align: middle;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.74rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      padding-left: 18px;
+    }
+
+    td.action-span { vertical-align: middle; text-align: center; }
+
+    .btn-group {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .update-btn {
+      background: transparent;
+      border: 1.5px solid var(--accent);
+      color: var(--accent);
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+
+    .update-btn:hover { background: var(--accent); color: #0e0e0e; }
+
+    .delete-btn {
+      background: transparent;
+      border: 1.5px solid rgba(255,95,95,0.4);
+      color: var(--danger);
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+
+    .delete-btn:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+    .empty-state {
+      text-align: center;
+      padding: 52px 20px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      line-height: 2;
+    }
+
+    .empty-state .icon { font-size: 2.6rem; margin-bottom: 10px; }
+
+    /* Money Summary */
+    .summary-title {
+      width: 100%;
+      max-width: 820px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .summary-title span { color: var(--accent); }
+
+    .money-cards {
+      display: flex;
+      gap: 16px;
+      width: 100%;
+      max-width: 820px;
+      flex-wrap: wrap;
+    }
+
+    .money-card {
+      flex: 1;
+      min-width: 220px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .money-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+
+    .money-card.faizan::before { background: var(--faizan); }
+    .money-card.yaseen::before { background: var(--yaseen); }
+
+    .money-card .card-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .money-card.faizan .card-name { color: var(--faizan); }
+    .money-card.yaseen .card-name { color: var(--yaseen); }
+
+    .money-card .meal-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .money-card .meal-row:last-of-type { border-bottom: none; }
+
+    .money-card .meal-row .label { letter-spacing: 0.04em; }
+
+    .money-card .meal-row .val {
+      font-family: 'DM Mono', monospace;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .money-card .total-row {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .money-card .total-label {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .money-card .total-amount {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.6rem;
+      letter-spacing: -0.02em;
+    }
+
+    .money-card.faizan .total-amount { color: var(--faizan); }
+    .money-card.yaseen .total-amount { color: var(--yaseen); }
+
+    .money-card .rs { font-size: 1rem; opacity: 0.6; margin-right: 2px; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--accent);
+      color: #0e0e0e;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      padding: 10px 24px;
+      border-radius: 100px;
+      transition: transform 0.35s cubic-bezier(.34,1.56,.64,1), opacity 0.35s;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 999;
+      white-space: nowrap;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    @media (max-width: 500px) {
+      th, td { padding: 10px 8px; }
+      .person-tag { font-size: 0.6rem; padding: 2px 8px; }
+      .update-btn, .delete-btn { font-size: 0.6rem; padding: 4px 8px; }
+      .money-card { padding: 18px 18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="tag">🏠 Hostel Life</div>
+    <h1>Mess <span>Tracker</span></h1>
+    <p>Daily meal tracking · ₨50 per meal</p>
+    <div class="persons-badge">
+      <span class="badge faizan">Faizan</span>
+      <span class="badge yaseen">Yaseen</span>
+    </div>
+  </header>
+
+  <div class="controls">
+    <label class="date-label" for="dateInput">Date —</label>
+    <input type="date" id="dateInput"/>
+    <button class="add-btn" onclick="addRow()">+ Add Date</button>
+    <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+    <label class="import-label">
+      ⬆ Import CSV
+      <input type="file" id="importInput" accept=".csv" onchange="importCSV(event)"/>
+    </label>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="date-head">Date</th>
+          <th class="person-head">Person</th>
+          <th class="noon-head">☀️ Afternoon</th>
+          <th class="night-head">🌙 Night</th>
+          <th class="action-head">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Money Summary -->
+  <div class="summary-title">💰 Total <span>Bill</span></div>
+  <div class="money-cards">
+    <div class="money-card faizan" id="cardFaizan">
+      <div class="card-name">Faizan</div>
+      <div class="meal-row"><span class="label">☀️ Afternoon meals</span><span class="val" id="fNoon">0 × ₨50</span></div>
+      <div class="meal-row"><span class="label">🌙 Night meals</span><span class="val" id="fNight">0 × ₨50</span></div>
+      <div class="total-row">
+        <span class="total-label">Total Due</span>
+        <span class="total-amount"><span class="rs">₨</span><span id="fTotal">0</span></span>
+      </div>
+    </div>
+    <div class="money-card yaseen" id="cardYaseen">
+      <div class="card-name">Yaseen</div>
+      <div class="meal-row"><span class="label">☀️ Afternoon meals</span><span class="val" id="yNoon">0 × ₨50</span></div>
+      <div class="meal-row"><span class="label">🌙 Night meals</span><span class="val" id="yNight">0 × ₨50</span></div>
+      <div class="total-row">
+        <span class="total-label">Total Due</span>
+        <span class="total-amount"><span class="rs">₨</span><span id="yTotal">0</span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const STORAGE_KEY = 'hostel_mess_v3';
+    const PERSONS = ['Faizan', 'Yaseen'];
+    const PRICE = 50;
+
+    function loadData() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+      catch { return []; }
+    }
+
+    function saveData(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    let records = loadData();
+
+    function formatDisplay(dateStr) {
+      const [y, m, d] = dateStr.split('-');
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return `${d} ${months[parseInt(m)-1]} ${y}`;
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+
+      if (records.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="icon">🍽️</div>No dates added yet.<br>Pick a date above to start tracking.</div></td></tr>`;
+        updateSummary();
+        return;
+      }
+
+      const dates = [...new Set(records.map(r => r.date))].sort((a, b) => b.localeCompare(a));
+
+      dates.forEach((date, di) => {
+        PERSONS.forEach((person, pi) => {
+          const rec = records.find(r => r.date === date && r.person === person);
+          const idx = records.indexOf(rec);
+          const isFirst = pi === 0;
+
+          const tr = document.createElement('tr');
+
+          let dateCell = '';
+          let actionCell = '';
+
+          if (isFirst) {
+            dateCell = `<td class="date-span" rowspan="2">${formatDisplay(date)}</td>`;
+            actionCell = `
+              <td class="action-span" rowspan="2">
+                <div class="btn-group">
+                  <button class="update-btn" onclick="updateDate('${date}')">Update</button>
+                  <button class="delete-btn" onclick="deleteDate('${date}')">Delete</button>
+                </div>
+              </td>`;
+          }
+
+          tr.innerHTML = `
+            ${dateCell}
+            <td class="person-cell"><span class="person-tag ${person.toLowerCase()}">${person}</span></td>
+            <td class="check-cell">
+              <label class="check-wrap noon">
+                <input type="checkbox" data-idx="${idx}" data-meal="noon" ${rec?.noon ? 'checked' : ''}/>
+              </label>
+            </td>
+            <td class="check-cell">
+              <label class="check-wrap night">
+                <input type="checkbox" data-idx="${idx}" data-meal="night" ${rec?.night ? 'checked' : ''}/>
+              </label>
+            </td>
+            ${actionCell}
+          `;
+
+          tbody.appendChild(tr);
+        });
+
+        if (di < dates.length - 1) {
+          const sep = document.createElement('tr');
+          sep.className = 'group-sep';
+          sep.innerHTML = '<td colspan="5"></td>';
+          tbody.appendChild(sep);
+        }
+      });
+
+      updateSummary();
+    }
+
+    function addRow() {
+      const input = document.getElementById('dateInput');
+      const date = input.value;
+      if (!date) { showToast('⚠️ Please select a date'); return; }
+      if (records.find(r => r.date === date)) { showToast('📅 Date already exists'); return; }
+
+      PERSONS.forEach(person => {
+        records.push({ date, person, noon: false, night: false });
+      });
+
+      saveData(records);
+      renderTable();
+      input.value = '';
+      showToast('✅ Date added for Faizan & Yaseen!');
+    }
+
+    function updateDate(date) {
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        const idx = parseInt(cb.dataset.idx);
+        if (!isNaN(idx) && records[idx] && records[idx].date === date) {
+          records[idx][cb.dataset.meal] = cb.checked;
+        }
+      });
+      saveData(records);
+      renderTable();
+      showToast('💾 Record updated!');
+    }
+
+    function deleteDate(date) {
+      records = records.filter(r => r.date !== date);
+      saveData(records);
+      renderTable();
+      showToast('🗑️ Date deleted!');
+    }
+
+    function updateSummary() {
+      const faizan = records.filter(r => r.person === 'Faizan');
+      const yaseen = records.filter(r => r.person === 'Yaseen');
+
+      const fNoon = faizan.filter(r => r.noon).length;
+      const fNight = faizan.filter(r => r.night).length;
+      const yNoon = yaseen.filter(r => r.noon).length;
+      const yNight = yaseen.filter(r => r.night).length;
+
+      document.getElementById('fNoon').textContent  = `${fNoon} × ₨${PRICE}`;
+      document.getElementById('fNight').textContent = `${fNight} × ₨${PRICE}`;
+      document.getElementById('fTotal').textContent = (fNoon + fNight) * PRICE;
+
+      document.getElementById('yNoon').textContent  = `${yNoon} × ₨${PRICE}`;
+      document.getElementById('yNight').textContent = `${yNight} × ₨${PRICE}`;
+      document.getElementById('yTotal').textContent = (yNoon + yNight) * PRICE;
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2400);
+    }
+
+    function exportCSV() {
+      if (records.length === 0) { showToast('⚠️ Nothing to export'); return; }
+      let csv = 'Date,Person,Afternoon,Night\n';
+      [...records].sort((a,b) => b.date.localeCompare(a.date)).forEach(r => {
+        csv += `${r.date},${r.person},${r.noon ? 'Yes' : 'No'},${r.night ? 'Yes' : 'No'}\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'mess_tracker.csv';
+      a.click();
+      showToast('⬇ CSV exported!');
+    }
+
+    function importCSV(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const lines = e.target.result.trim().split('\n').slice(1);
+        const imported = [];
+        lines.forEach(line => {
+          const [date, person, noon, night] = line.split(',');
+          if (date && person) {
+            imported.push({
+              date: date.trim(), person: person.trim(),
+              noon: noon?.trim() === 'Yes', night: night?.trim() === 'Yes'
+            });
+          }
+        });
+        records = imported;
+        saveData(records);
+        renderTable();
+        showToast('⬆ CSV imported!');
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    // Default today
+    const today = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    document.getElementById('dateInput').value =
+      `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+
+    renderTable();
+  </script>
+</body>
+</html>
